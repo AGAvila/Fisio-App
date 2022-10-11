@@ -4,7 +4,11 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/FisioApp/app/src/main/res/layout/activity_main.xml" value="0.18541666666666667" />
+        <entry key="..\:/FisioApp/app/src/main/res/layout/activity_scan.xml" value="0.18541666666666667" />
         <entry key="..\:/FisioApp/app/src/main/res/layout/content_main.xml" value="0.18541666666666667" />
+        <entry key="..\:/FisioApp/app/src/main/res/layout/list_item.xml" value="0.18541666666666667" />
+        <entry key="..\:/FisioApp/app/src/main/res/menu/connected_menu.xml" value="0.18541666666666667" />
+        <entry key="..\:/FisioApp/app/src/main/res/menu/scan_menu.xml" value="0.18541666666666667" />
       </map>
     </option>
   </component>

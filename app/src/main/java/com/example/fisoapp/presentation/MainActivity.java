@@ -50,8 +50,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void conectar(View view){
- //       Intent intent = new Intent(this, ScanActivity.class);
- //       startActivity(intent);
+        Intent intent = new Intent(this, ScanActivity.class);
+        startActivity(intent);
 
     }
 
