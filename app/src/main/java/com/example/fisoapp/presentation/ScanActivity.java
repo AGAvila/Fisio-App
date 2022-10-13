@@ -73,7 +73,6 @@ public class ScanActivity extends AppCompatActivity {
     private static final long SCAN_PERIOD = 10000;
 
     @SuppressLint("RestrictedApi")
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -179,20 +178,20 @@ public class ScanActivity extends AppCompatActivity {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
 
-            solicitarPermiso(Manifest.permission.ACCESS_FINE_LOCATION,
+            requestPermission(Manifest.permission.ACCESS_FINE_LOCATION,
                     "Sin el permiso localización no es posible escanear dispositivos" +
                             " Bluetooth.", PERMISSION_REQUEST_LOCATION, this);
 
         } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN)
                 != PackageManager.PERMISSION_GRANTED) {
 
-            solicitarPermiso(Manifest.permission.BLUETOOTH_SCAN, "Necesito Bluetooth", PERMISSION_REQUEST_SCANN,
+            requestPermission(Manifest.permission.BLUETOOTH_SCAN, "Necesito Bluetooth", PERMISSION_REQUEST_SCANN,
                     this);
 
         } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
                 != PackageManager.PERMISSION_GRANTED) {
 
-            solicitarPermiso(Manifest.permission.BLUETOOTH_CONNECT, "necesito connect", PERMISSION_REQUEST_CONNECT,
+            requestPermission(Manifest.permission.BLUETOOTH_CONNECT, "necesito connect", PERMISSION_REQUEST_CONNECT,
                     this);
         } else {
             scanLeDevice(true);
@@ -278,7 +277,7 @@ public class ScanActivity extends AppCompatActivity {
         invalidateOptionsMenu();
     }
 
-    private static void solicitarPermiso(final String permiso, String
+    private static void requestPermission(final String permiso, String
             justificacion, final int requestCode, final Activity actividad) {
         if (ActivityCompat.shouldShowRequestPermissionRationale(actividad,
                 permiso)) {
@@ -389,7 +388,8 @@ public class ScanActivity extends AppCompatActivity {
             }
 
             BluetoothDevice device = mLeDevices.get(i);
-            @SuppressLint("MissingPermission") final String deviceName = device.getName();
+            @SuppressLint("MissingPermission")
+            final String deviceName = device.getName();
             if (deviceName != null && deviceName.length() > 0)
                 viewHolder.deviceName.setText(deviceName);
             else
