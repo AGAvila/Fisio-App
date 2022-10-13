@@ -1,4 +1,4 @@
-package com.example.fisoapp.data;
+package com.example.fisoapp.domain;
 
 import java.util.HashMap;
 
