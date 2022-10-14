@@ -26,6 +26,7 @@ import androidx.preference.PreferenceManager;
 import com.example.fisoapp.R;
 import com.example.fisoapp.domain.GattAttributes;
 import com.example.fisoapp.services.BluetoothLeService;
+import com.github.mikephil.charting.charts.LineChart;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,19 +52,14 @@ public class ConnectedActivity extends AppCompatActivity {
     private BluetoothGattCharacteristic mNotifyCharacteristic;
     private BluetoothGattCharacteristic mCommandCharacteristic;
 
-    private ImageView mFrontLight;
-    private ImageView mBrakeLamp;
-    private ImageView mCoolantLight;
-    private ImageView mOilLevel;
-    private ImageView mBrakeLiquid;
-    private ImageView mBrakePads;
-    private ImageView mWasser;
+    private com.github.mikephil.charting.charts.LineChart mlineChart;
 
 
     private PreferenceManager mPrefManager;
     private SharedPreferences mPreferences;
 
-    private final static ArrayList<String> prefs = new ArrayList<>(Arrays.asList("front","back","coolant","oil","brakeL","brakeP","wasser"));
+    private final static ArrayList<String> prefs =
+            new ArrayList<>(Arrays.asList("front","back","coolant","oil","brakeL","brakeP","wasser"));
 
 
     // Code to manage Service lifecycle.
@@ -110,7 +106,7 @@ public class ConnectedActivity extends AppCompatActivity {
                 invalidateOptionsMenu();
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 // Show all the supported services and characteristics on the user interface.
-                displayGattServices(mBluetoothLeService.getSupportedGattServices());
+                discoverGattServices(mBluetoothLeService.getSupportedGattServices());
 
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 byte data[] = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
@@ -172,32 +168,15 @@ public class ConnectedActivity extends AppCompatActivity {
 */
 
 
-    public void UpdateMask(View view){
-        //Configured for testing purporses.
-        BluetoothGattCharacteristic mCharacteristic;
-        UUID uuid = UUID.fromString(GattAttributes.COMMANDS_CHARACTERISTIC);
-        byte[] value = {0x01, 0x0F};
-        mCommandCharacteristic.setValue(value);
-        mBluetoothLeService.writeCharacteristic(mCommandCharacteristic);
-
-    }
-
-    public void BLEUpdateMask(byte mask){
-        //Configured for testing purporses.
-        BluetoothGattCharacteristic mCharacteristic;
-        UUID uuid = UUID.fromString(GattAttributes.COMMANDS_CHARACTERISTIC);
-        byte[] value = {0x01, mask};
-        mCommandCharacteristic.setValue(value);
-        mBluetoothLeService.writeCharacteristic(mCommandCharacteristic);
-
-    }
-
 
     @SuppressLint("RestrictedApi")
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connected);
+
+        mlineChart = new LineChart(this);
+
 
         final Intent intent = getIntent();
         mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
@@ -277,17 +256,11 @@ public class ConnectedActivity extends AppCompatActivity {
 
 
     // Inicializar las notificaciones y extraer characteristica de commandos
-    private void displayGattServices(List<BluetoothGattService> gattServices) {
+    private void discoverGattServices(List<BluetoothGattService> gattServices) {
         if (gattServices == null) return;
         //Inicio notificación status
         BluetoothGattCharacteristic statusChar = gattServices.get(2).getCharacteristic(
-                UUID.fromString(GattAttributes.STATUS_CHARACTERISTIC)
-        );
-        BluetoothGattCharacteristic LevelChar = gattServices.get(2).getCharacteristic(
-                UUID.fromString(GattAttributes.OIL_LEVEL_CHARACTERISTIC)
-        );
-        BluetoothGattCharacteristic TempChar = gattServices.get(2).getCharacteristic(
-                UUID.fromString(GattAttributes.OIL_TEMP_CHARACTERISTIC)
+                UUID.fromString(GattAttributes.TX_CHAR)
         );
 
         int charaProp = statusChar.getProperties();
@@ -297,24 +270,9 @@ public class ConnectedActivity extends AppCompatActivity {
 
 
         }
-        charaProp = LevelChar.getProperties();
-        if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
-            mBluetoothLeService.setCharacteristicNotification(
-                    LevelChar, true);
-
-
-        }
-        charaProp = TempChar.getProperties();
-        if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
-            mBluetoothLeService.setCharacteristicNotification(
-                    TempChar, true);
-
-
-        }
-
 
         mCommandCharacteristic = gattServices.get(2).getCharacteristic(
-                UUID.fromString(GattAttributes.COMMANDS_CHARACTERISTIC)
+                UUID.fromString(GattAttributes.RX_CHAR)
         );
 
 /*
