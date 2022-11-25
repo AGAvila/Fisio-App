@@ -78,7 +78,7 @@ public class ConnectedActivity extends AppCompatActivity {
 
 
     private Acquisition mAquisistion;
-
+    private useCasesAquisition mUseCaseAcquisition;
 
 
 
@@ -151,6 +151,7 @@ public class ConnectedActivity extends AppCompatActivity {
 
         //Set acquisition
         mAquisistion = new Acquisition();
+        mUseCaseAcquisition = new useCasesAquisition(mAquisistion,this);
 
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
@@ -413,6 +414,18 @@ public class ConnectedActivity extends AppCompatActivity {
 
 
     private void updateGraphic(){
+
+        double mRMS = mUseCaseAcquisition.calculateRMS();
+        if (mRMS>2){
+            View btn = findViewById(R.id.button4);
+                 btn.setVisibility(View.INVISIBLE);
+            //ToDo: Graphic signals should change to red
+
+        }else{
+
+            //ToDo: Graphic signals shoould change to green
+        }
+
         //ToDo: Update mlineChart with the data from mAquisition
 
 
