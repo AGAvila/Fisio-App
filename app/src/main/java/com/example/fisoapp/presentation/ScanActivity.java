@@ -215,14 +215,14 @@ public class ScanActivity extends AppCompatActivity {
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     final BluetoothDevice device = mLeDeviceListAdapter.getDevice(position);
                     if (device == null) return;
-                    //                  final Intent intent = new Intent(ScanActivity.this, ConnectedActivity.class);
-                    //                  intent.putExtra(ConnectedActivity.EXTRAS_DEVICE_NAME, device.getName());
-                    //                  intent.putExtra(ConnectedActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
+                                      final Intent intent = new Intent(ScanActivity.this, ConnectedActivity.class);
+                                      intent.putExtra(ConnectedActivity.EXTRAS_DEVICE_NAME, device.getName());
+                                      intent.putExtra(ConnectedActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
                     if (mScanning) {
                         mBluetoothLeScanner.stopScan(mLeScanCallback);
                         mScanning = false;
                     }
-                    //                   startActivity(intent);
+                    startActivity(intent);
 
 
                 }
