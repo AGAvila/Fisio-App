@@ -11,7 +11,7 @@ public class Acquisition {
     private int noPacket;
     private int lastIndex;
 
-    public void Aquisition( ){
+    public Acquisition(){
         mData = new byte[24000];
         mPacket = new byte[4000];
         lastIndex = 0;
@@ -19,7 +19,7 @@ public class Acquisition {
 
 
     public void appendPacket(byte[] Packet){
-        //mPacket = Packet;
+        mPacket = Packet;
         System.arraycopy(Packet,0, mData, lastIndex, Packet.length);
         lastIndex += Packet.length;
         if (lastIndex >= 24000){
@@ -28,6 +28,20 @@ public class Acquisition {
 
     }
 
+    public byte[] getData(){
+        return mData;
+    }
 
+    public void setData(byte [] Data){
+        mData = Data;
 
+    }
+
+    public int getLastIndex(){
+        return lastIndex;
+    }
+
+    public void setLastIndex(int LastIndex){
+        lastIndex = LastIndex;
+    }
 }
