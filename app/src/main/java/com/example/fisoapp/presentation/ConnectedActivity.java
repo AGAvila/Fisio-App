@@ -29,6 +29,7 @@ import androidx.preference.PreferenceManager;
 
 import com.example.fisoapp.R;
 import com.example.fisoapp.data.Acquisition;
+import com.example.fisoapp.useCases.useCasesAquisition;
 import com.example.fisoapp.domain.GattAttributes;
 import com.example.fisoapp.services.BluetoothLeService;
 import com.github.mikephil.charting.charts.LineChart;
@@ -394,8 +395,8 @@ public class ConnectedActivity extends AppCompatActivity {
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 byte data[] = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
 
-                // mAquisistion.appendPacket(data);
-                // updateGraphic();
+                mUseCaseAcquisition.addPacket(data);
+                updateGraphic();
 
             }
         }
