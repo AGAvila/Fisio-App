@@ -10,6 +10,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.DashPathEffect;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -20,13 +23,23 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
 
 import com.example.fisoapp.R;
+import com.example.fisoapp.data.Acquisition;
 import com.example.fisoapp.domain.GattAttributes;
 import com.example.fisoapp.services.BluetoothLeService;
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.LimitLine;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.github.mikephil.charting.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,78 +65,22 @@ public class ConnectedActivity extends AppCompatActivity {
     private BluetoothGattCharacteristic mNotifyCharacteristic;
     private BluetoothGattCharacteristic mCommandCharacteristic;
 
-    private com.github.mikephil.charting.charts.LineChart mlineChart;
-
+    private com.github.mikephil.charting.charts.LineChart mLineChart;
+    private View mBottomConnect;
+    private View mBottomQuit;
 
     private PreferenceManager mPrefManager;
     private SharedPreferences mPreferences;
+
 
     private final static ArrayList<String> prefs =
             new ArrayList<>(Arrays.asList("front","back","coolant","oil","brakeL","brakeP","wasser"));
 
 
-    // Code to manage Service lifecycle.
-    private final ServiceConnection mServiceConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName componentName, IBinder service) {
-            mBluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
-            if (!mBluetoothLeService.initialize()) {
-                Log.e(TAG, "Unable to initialize Bluetooth");
-                finish();
-            }
-            // Automatically connects to the device upon successful start-up initialization.
-            mBluetoothLeService.connect(mDeviceAddress);
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            mBluetoothLeService = null;
-        }
-    };
-
-    // Handles various events fired by the Service.
-    // ACTION_GATT_CONNECTED: connected to a GATT server.
-    // ACTION_GATT_DISCONNECTED: disconnected from a GATT server.
-    // ACTION_GATT_SERVICES_DISCOVERED: discovered GATT services.
-    // ACTION_DATA_AVAILABLE: received data from the device.  This can be a result of read
-    //                        or notification operations.
-    private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            final String action = intent.getAction();
-            if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
-                mConnected = true;
-                updateConnectionState(R.string.connected);
-                ImageView view = findViewById(R.id.conn_image);
-                view.setVisibility(View.VISIBLE);
-                invalidateOptionsMenu();
-            } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
-                mConnected = false;
-                updateConnectionState(R.string.disconnected);
-                ImageView view = findViewById(R.id.conn_image);
-                view.setVisibility(View.INVISIBLE);
-                invalidateOptionsMenu();
-            } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
-                // Show all the supported services and characteristics on the user interface.
-                discoverGattServices(mBluetoothLeService.getSupportedGattServices());
-
-            } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-                byte data[] = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
-            }
-        }
-    };
+    private Acquisition mAquisistion;
 
 
-    private final View.OnClickListener ImageClickListener =
-            new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int image = v.getId();
-                    int index = 0xFF  ;
 
-                }
-            };
 
     // If a given GATT characteristic is selected, check for supported features.  This sample
     // demonstrates 'Read' and 'Notify' features.  See
@@ -175,8 +132,11 @@ public class ConnectedActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connected);
 
-        mlineChart = new LineChart(this);
+        mLineChart = new LineChart(this);
 
+
+        mBottomConnect = findViewById(R.id.connectButton);
+        mBottomQuit = findViewById(R.id.quitButton);
 
         final Intent intent = getIntent();
         mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
@@ -189,8 +149,66 @@ public class ConnectedActivity extends AppCompatActivity {
         mPrefManager= new PreferenceManager(this);
         mPreferences = mPrefManager.getSharedPreferences();
 
+        //Set acquisition
+        mAquisistion = new Acquisition();
+
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+
+        mLineChart.setTouchEnabled(true);
+        mLineChart.setPinchZoom(true);
+
+        renderData();
+
+    }
+
+    //Bottom methods
+
+    public void connect(View view){
+        if( !mConnected) {
+            mBluetoothLeService.connect(mDeviceAddress);
+        }
+    }
+
+    public void quit (View view){
+        stopAcq(view);
+        mBluetoothLeService.disconnect();
+        finish();
+    }
+
+    public void startAcq(View view){
+        mCommandCharacteristic.setValue("a");
+        mBluetoothLeService.writeCharacteristic(mCommandCharacteristic);
+    }
+
+    public void stopAcq(View view){
+        mCommandCharacteristic.setValue("q");
+        mBluetoothLeService.writeCharacteristic(mCommandCharacteristic);
+    }
+
+    public void renderData(){
+
+        XAxis xAxis = mLineChart.getXAxis();
+        xAxis.enableGridDashedLine(10f, 10f, 0f);
+        xAxis.setAxisMaximum(10f);
+        xAxis.setAxisMinimum(0f);
+
+
+        YAxis leftAxis = mLineChart.getAxisLeft();
+        leftAxis.removeAllLimitLines();
+        leftAxis.setAxisMaximum(350f);
+        leftAxis.setAxisMinimum(0f);
+        leftAxis.setDrawZeroLine(false);
+
+
+        mLineChart.getAxisRight().setEnabled(false);
+        setData();
+    }
+
+
+    private void setData() {
+        //ToDo: Create  the data of the chart and show it
+
     }
 
 
@@ -259,14 +277,14 @@ public class ConnectedActivity extends AppCompatActivity {
     private void discoverGattServices(List<BluetoothGattService> gattServices) {
         if (gattServices == null) return;
         //Inicio notificación status
-        BluetoothGattCharacteristic statusChar = gattServices.get(2).getCharacteristic(
+        BluetoothGattCharacteristic TxChar = gattServices.get(2).getCharacteristic(
                 UUID.fromString(GattAttributes.TX_CHAR)
         );
 
-        int charaProp = statusChar.getProperties();
+        int charaProp = TxChar.getProperties();
         if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
             mBluetoothLeService.setCharacteristicNotification(
-                    statusChar, true);
+                    TxChar, true);
 
 
         }
@@ -325,6 +343,81 @@ public class ConnectedActivity extends AppCompatActivity {
 
 
     }
+
+    // Code to manage Service lifecycle.
+    private final ServiceConnection mServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder service) {
+            mBluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
+            if (!mBluetoothLeService.initialize()) {
+                Log.e(TAG, "Unable to initialize Bluetooth");
+                finish();
+            }
+            // Automatically connects to the device upon successful start-up initialization.
+            mBluetoothLeService.connect(mDeviceAddress);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            mBluetoothLeService = null;
+        }
+    };
+
+    // Handles various events fired by the Service.
+    // ACTION_GATT_CONNECTED: connected to a GATT server.
+    // ACTION_GATT_DISCONNECTED: disconnected from a GATT server.
+    // ACTION_GATT_SERVICES_DISCOVERED: discovered GATT services.
+    // ACTION_DATA_AVAILABLE: received data from the device.  This can be a result of read
+    //                        or notification operations.
+    private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
+                mConnected = true;
+                updateConnectionState(R.string.connected);
+                ImageView view = findViewById(R.id.conn_image);
+                view.setVisibility(View.VISIBLE);
+                invalidateOptionsMenu();
+            } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
+                mConnected = false;
+                updateConnectionState(R.string.disconnected);
+                ImageView view = findViewById(R.id.conn_image);
+                view.setVisibility(View.INVISIBLE);
+                invalidateOptionsMenu();
+            } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
+                // Show all the supported services and characteristics on the user interface.
+                discoverGattServices(mBluetoothLeService.getSupportedGattServices());
+
+            } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
+                byte data[] = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
+
+                // mAquisistion.appendPacket(data);
+                // updateGraphic();
+
+            }
+        }
+    };
+
+
+    private final View.OnClickListener ImageClickListener =
+            new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int image = v.getId();
+                    int index = 0xFF  ;
+
+                }
+            };
+
+
+    private void updateGraphic(){
+        //ToDo: Update mlineChart with the data from mAquisition
+
+
+    }
+
 
     private static IntentFilter makeGattUpdateIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
