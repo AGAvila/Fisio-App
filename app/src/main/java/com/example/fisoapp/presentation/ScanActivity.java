@@ -16,6 +16,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ParcelUuid;
@@ -66,6 +67,7 @@ public class ScanActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_LOCATION = 1;
     private static final int PERMISSION_REQUEST_SCANN = 2;
     private static final int PERMISSION_REQUEST_CONNECT = 3;
+    private static final int PERMISSION_REQUEST_BLUETOOTH = 4;
 
     // Stops scanning after 10 seconds.
     private static final long SCAN_PERIOD = 10000;
@@ -173,6 +175,30 @@ public class ScanActivity extends AppCompatActivity {
         mScannerList.setOnItemClickListener(ListClickListner);
 
         //Check permissions needed along the activity
+
+        if( Build.VERSION.SDK_INT >=Build.VERSION_CODES.S ){//Android 12 or higher //ToDo: Check correct working of this section
+
+
+         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            requestPermission(Manifest.permission.BLUETOOTH_SCAN, "Necesito Bluetooth", PERMISSION_REQUEST_SCANN, this);
+
+        }
+        else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
+                != PackageManager.PERMISSION_GRANTED) {
+
+        requestPermission(Manifest.permission.BLUETOOTH_CONNECT, "necesito connect", PERMISSION_REQUEST_CONNECT,
+                    this);
+        }}
+
+        else if(ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) // Android 11 or lower
+                != PackageManager.PERMISSION_GRANTED) {
+
+            requestPermission(Manifest.permission.BLUETOOTH, "necesito connect", PERMISSION_REQUEST_BLUETOOTH,
+                    this);
+        }
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
 
@@ -180,18 +206,8 @@ public class ScanActivity extends AppCompatActivity {
                     "Sin el permiso localización no es posible escanear dispositivos" +
                             " Bluetooth.", PERMISSION_REQUEST_LOCATION, this);
 
-        } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            requestPermission(Manifest.permission.BLUETOOTH_SCAN, "Necesito Bluetooth", PERMISSION_REQUEST_SCANN,
-                    this);
-
-        } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            requestPermission(Manifest.permission.BLUETOOTH_CONNECT, "necesito connect", PERMISSION_REQUEST_CONNECT,
-                    this);
-        } else {
+        }
+        else {
             scanLeDevice(true);
         }
 
@@ -323,6 +339,13 @@ public class ScanActivity extends AppCompatActivity {
                 }
                 break;
 
+            case PERMISSION_REQUEST_BLUETOOTH:
+                if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                    Toast.makeText(this,"No se puede escanear sin acceso a" +
+                            " Bluetooth",Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+                break;
             default:
                 break;
 
