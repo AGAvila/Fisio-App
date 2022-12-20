@@ -54,8 +54,9 @@ public class useCasesAquisition {
     private short[] adaptSamples(byte[] Samples){
         short[] data16 = new short[1] ;
 
-        for(int i = 0; i<Samples.length; i++){
-            //ToDo
+        for(int i = 0; i<Samples.length/2-1; i++){
+            //ToDo: adapt samples from 8 bits to 16 bits
+            data16[i] = (short) (Samples[2*i]*2^8+Samples[2*i+1]);
         }
 
 
