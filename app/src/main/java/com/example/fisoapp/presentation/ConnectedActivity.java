@@ -10,9 +10,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.DashPathEffect;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -23,7 +20,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
 
@@ -33,14 +29,8 @@ import com.example.fisoapp.useCases.useCasesAquisition;
 import com.example.fisoapp.domain.GattAttributes;
 import com.example.fisoapp.services.BluetoothLeService;
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.LimitLine;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
-import com.github.mikephil.charting.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -396,7 +386,7 @@ public class ConnectedActivity extends AppCompatActivity {
                 byte data[] = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
 
                 mUseCaseAcquisition.addPacket(data);
-                updateGraphic();
+                updateGraphics();
 
             }
         }
@@ -414,7 +404,7 @@ public class ConnectedActivity extends AppCompatActivity {
             };
 
 
-    private void updateGraphic(){
+    private void updateGraphics(){
 
         double mRMS = mUseCaseAcquisition.calculateRMS();
         if (mRMS>2){
@@ -424,7 +414,7 @@ public class ConnectedActivity extends AppCompatActivity {
 
         }else{
 
-            //ToDo: Graphic signals shoould change to green
+            //ToDo: Graphic signals should change to green
         }
 
         //ToDo: Update mlineChart with the data from mAquisition
