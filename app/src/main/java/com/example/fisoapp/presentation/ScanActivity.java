@@ -263,7 +263,9 @@ public class ScanActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        if(mScanning == true){
         scanLeDevice(false);
+        }
         mLeDeviceListAdapter.clear();
     }
 
