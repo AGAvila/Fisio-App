@@ -21,7 +21,7 @@ android:layout_margin="10dp">
 
     <TextView
         android:id="@+id/connection_state"
-        android:layout_width="318dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="@string/disconnected"
@@ -38,26 +38,40 @@ android:layout_margin="10dp">
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="219dp">
-    <com.github.mikephil.charting.charts.LineChart
-        android:id="@+id/linechart1"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+
+        <com.github.mikephil.charting.charts.LineChart
+            android:id="@+id/linechart_1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <TextView
+        android:id="@+id/rms_value_display"
+        android:layout_width="match_parent"
+        android:layout_height="38dp"
+        android:gravity="center"
+        android:text=""
+        android:background="@drawable/text_border"
+        android:textSize="20sp" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
-        android:layout_height="456dp">
+        android:layout_height="match_parent">
 
 
         <Button
             android:id="@+id/connectButton"
-            android:layout_width="wrap_content"
+            android:layout_width="250dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
             android:onClick="connect"
-            android:text="Reconnect"
-            app:layout_constraintBottom_toTopOf="@+id/quitButton"
+            android:text="@string/reconnect"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.501"
             app:layout_constraintStart_toStartOf="parent"
@@ -65,38 +79,39 @@ android:layout_margin="10dp">
 
         <Button
             android:id="@+id/StartButton"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:onClick="startAcq"
-            android:text="Start Acquisition"
-            app:layout_constraintBottom_toTopOf="@+id/quitButton"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.501"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.869" />
+            android:text="@string/start_acquisition"
+            app:layout_constraintEnd_toEndOf="@+id/connectButton"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="@+id/connectButton"
+            app:layout_constraintTop_toBottomOf="@+id/connectButton" />
 
         <Button
-            android:id="@+id/quitButton"
-            android:layout_width="wrap_content"
+            android:id="@+id/back_button"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="176dp"
+            android:layout_marginTop="8dp"
             android:onClick="quit"
-            android:text="Quit"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:text="@string/back"
+            app:layout_constraintEnd_toEndOf="@+id/StartButton"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="@+id/StartButton"
+            app:layout_constraintTop_toBottomOf="@+id/StartButton" />
 
         <Button
             android:id="@+id/button4"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:background="@color/black"
-            android:text="Bien"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/quitButton" />
+            android:text="@string/bien"
+            android:visibility="invisible"
+            app:layout_constraintEnd_toEndOf="@+id/back_button"
+            app:layout_constraintStart_toStartOf="@+id/back_button"
+            app:layout_constraintTop_toBottomOf="@+id/back_button" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>

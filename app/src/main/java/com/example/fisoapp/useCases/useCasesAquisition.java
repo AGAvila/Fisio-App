@@ -1,10 +1,15 @@
 package com.example.fisoapp.useCases;
 
 import android.app.Activity;
+import android.os.Environment;
 
 import com.example.fisoapp.data.Acquisition;
+import com.opencsv.CSVWriter;
 
-import java.util.AbstractQueue;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class useCasesAquisition {
 
@@ -17,15 +22,41 @@ public class useCasesAquisition {
         mactivity = activity;
     }
 
+    //ToDo Make save function
+    public void saveAcquisition(byte[] acquisition, String fileName ) throws IOException {
+        // Method that saves the data received from sensors in a .csv file
 
-    public void saveAquisition( byte[] aquisition, char[] fileName ){
+        String file_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                + "/" + fileName + ".csv";
+        File file = new File(file_path);
 
-        //ToDo: Make save function
+        CSVWriter writer;
+
+         // If the file already exists -> Appends data
+        if (file.exists() && !file.isDirectory()){
+            FileWriter mFileWriter = new FileWriter(file_path, true);
+            writer = new CSVWriter(mFileWriter);
+        }
+        // If the file does not exists -> Creates it and adds data
+        else {
+            writer = new CSVWriter(new FileWriter(file_path));
+        }
+
+        // Conversion: Byte[] -> String[]
+        String[] acquisition_str = new String[acquisition.length];
+        for (int i = 0; i < acquisition.length; i++){
+            acquisition_str[i] = "" + acquisition[i];
+        }
+
+        // Save data
+        writer.writeNext(acquisition_str);
+        writer.close();
+
     }
 
     public double calculateRMS(){
         double rms = 0;
-        byte [] data = mAquisition.getData();
+        byte[] data = mAquisition.getData();
 
         for (int i = 0; i < data.length; i++) {
             rms += data[i] * data[i];
