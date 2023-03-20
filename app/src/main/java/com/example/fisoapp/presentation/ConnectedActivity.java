@@ -24,10 +24,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceManager;
 
-
 import com.example.fisoapp.R;
 import com.example.fisoapp.data.Acquisition;
-import com.example.fisoapp.useCases.useCasesAquisition;
 import com.example.fisoapp.domain.GattAttributes;
 import com.example.fisoapp.services.BluetoothLeService;
 import com.github.mikephil.charting.charts.LineChart;
@@ -37,11 +35,7 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 
-import org.apache.commons.lang3.ArrayUtils;
-
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -53,8 +47,8 @@ public class ConnectedActivity extends AppCompatActivity {
 
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
-    private final String LIST_NAME = "NAME";
-    private final String LIST_UUID = "UUID";
+    //private final String LIST_NAME = "NAME";
+    //private final String LIST_UUID = "UUID";
 
 
     private TextView mConnectionState;
@@ -74,15 +68,13 @@ public class ConnectedActivity extends AppCompatActivity {
     private PreferenceManager mPrefManager;
     private SharedPreferences mPreferences;
 
-
     private final static ArrayList<String> prefs =
             new ArrayList<>(Arrays.asList("front","back","coolant","oil","brakeL","brakeP","wasser"));
 
-
-    private Acquisition mAcquisistion;
-    private useCasesAquisition mUseCaseAcquisition;
+    private Acquisition mAcquisition;
 
     TextView rms_value_display; // RMS value display
+
 
     // If a given GATT characteristic is selected, check for supported features.  This sample
     // demonstrates 'Read' and 'Notify' features.  See
@@ -133,12 +125,14 @@ public class ConnectedActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connected);
 
-        // Creates LineChart use for plotting the received signals
+        // Creates LineChart use for plotting the data
         mLineChart = new LineChart(this);
         mLineChart = (LineChart) findViewById(R.id.linechart_1);
+        mLineChart.setTouchEnabled(true);
+        mLineChart.setPinchZoom(false);
+        mLineChart.setScaleEnabled(true);
 
-        // Searches for the back button
-        //mBottomConnect = findViewById(R.id.connectButton);
+        mBottomConnect = findViewById(R.id.connectButton);
         mBottomQuit = findViewById(R.id.back_button);
 
         final Intent intent = getIntent();
@@ -152,20 +146,15 @@ public class ConnectedActivity extends AppCompatActivity {
         mPreferences = mPrefManager.getSharedPreferences();
 
         //Set acquisition
-        mAcquisistion = new Acquisition();
-        mUseCaseAcquisition = new useCasesAquisition(mAcquisistion,this);
+        mAcquisition = new Acquisition();
 
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
-
-        mLineChart.setTouchEnabled(true);
-        mLineChart.setPinchZoom(true);
 
         // Defines the used methods
         renderData();
         quit();
         startAcq();
-
     }
 
 
@@ -194,17 +183,22 @@ public class ConnectedActivity extends AppCompatActivity {
     public void startAcq(){
         // Starts the data acquisition and the BLE communication
 
-        Button acquisition_button = (Button) findViewById(R.id.StartButton);
+        Button acquisition_button = findViewById(R.id.StartButton);
         acquisition_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(mCommandCharacteristic != null) {
                     mCommandCharacteristic.setValue("a");
                     mBluetoothLeService.writeCharacteristic(mCommandCharacteristic);
+
+                    // Acquiring message to user
+                    rms_value_display = findViewById(R.id.rms_value_display);
+                    rms_value_display.setText(R.string.acquiring_message);
                 }
             }
         });
     }
+
 
     public void stopAcq(View view){
         // Stops the acquisition of data and the BLE communication
@@ -216,72 +210,17 @@ public class ConnectedActivity extends AppCompatActivity {
     }
 
 
-    public void renderData(){
-        // Configures the axis for the LineChart before plotting
+    private void saveData() {
+        // Save the plotted data in a csv file
 
-        XAxis xAxis = mLineChart.getXAxis();
-        xAxis.enableGridDashedLine(10f, 10f, 0f);
-        xAxis.setAxisMaximum(10f);
-        xAxis.setAxisMinimum(0f);
-
-        YAxis leftAxis = mLineChart.getAxisLeft();
-        leftAxis.removeAllLimitLines();
-        leftAxis.setAxisMaximum(350f);
-        leftAxis.setAxisMinimum(0f);
-        leftAxis.setDrawZeroLine(false);
-
-        mLineChart.getAxisRight().setEnabled(false);
-        setData();
-    }
-
-
-    //ToDo: Create the data of the chart and show it
-    private void setData() {
-        // Plot the received data from the sensors device
-
-        byte[] byte_data = mAcquisistion.getData();
-        int data_array_length = byte_data.length;
-
-        // Conversion: Byte[] -> int[]
-        int[] int_data = new int[data_array_length];
-        for (int i = 0; i < data_array_length; i++){
-            int_data[i] = byte_data[i];
-        }
-
-        // Conversion: int[] -> float[]
-        float[] float_data = new float[data_array_length];
-        for (int i = 0; i < data_array_length; i++){
-            float_data[i] = int_data[i];
-        }
-
-        // Add values to entry list
-        ArrayList<Entry> data_points = new ArrayList<>();
-        float f;
-        for (int i = 0; i < data_array_length; i++){
-            f = float_data[i];
-            int last_index = mAcquisistion.getLastIndex();
-            data_points.add(new Entry(last_index, f));
-        }
-
-        LineDataSet plot1;
-        plot1 = new LineDataSet(data_points, "ECG");
-        LineData data = new LineData(plot1);
-        plot1.setDrawCircles(false);
-        plot1.setLineWidth(2f);
-        plot1.setColor(Color.argb(255,25,190,190));
-
-        mLineChart.setData(data);
-
-        // Save the plotted data
+        short[] short_data = mAcquisition.getConvertedData();
         String file_name = "DataPointsStorage";
 
         try {
-            mUseCaseAcquisition.saveAcquisition(byte_data, file_name);
+            mAcquisition.saveAcquisition(short_data, file_name);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        // ------------------------------
-
     }
 
 
@@ -299,6 +238,7 @@ public class ConnectedActivity extends AppCompatActivity {
         return true;
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -312,6 +252,7 @@ public class ConnectedActivity extends AppCompatActivity {
         return true;
     }
 
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -322,11 +263,13 @@ public class ConnectedActivity extends AppCompatActivity {
         }
     }
 
+
     @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mGattUpdateReceiver);
     }
+
 
     @Override
     protected void onDestroy() {
@@ -334,6 +277,7 @@ public class ConnectedActivity extends AppCompatActivity {
         unbindService(mServiceConnection);
         mBluetoothLeService = null;
     }
+
 
     private void updateConnectionState(final int resourceId) {
         runOnUiThread(new Runnable() {
@@ -345,8 +289,9 @@ public class ConnectedActivity extends AppCompatActivity {
     }
 
 
-    // Inicializar las notificaciones y extraer characteristica de commandos
     private void discoverGattServices(List<BluetoothGattService> gattServices) {
+        // Inicializar las notificaciones y extraer characteristica de commandos
+
         if (gattServices == null) return;
         //Inicio notificación status
         BluetoothGattCharacteristic TxChar = gattServices.get(2).getCharacteristic(
@@ -413,6 +358,7 @@ public class ConnectedActivity extends AppCompatActivity {
 
     }
 
+
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
 
@@ -427,11 +373,13 @@ public class ConnectedActivity extends AppCompatActivity {
             mBluetoothLeService.connect(mDeviceAddress);
         }
 
+
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
             mBluetoothLeService = null;
         }
     };
+
 
     // Handles various events fired by the Service.
     // ACTION_GATT_CONNECTED: connected to a GATT server.
@@ -460,49 +408,32 @@ public class ConnectedActivity extends AppCompatActivity {
                 discoverGattServices(mBluetoothLeService.getSupportedGattServices());
 
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-                byte data[] = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
+                // Go here if there is info ready to be stored
 
-                mUseCaseAcquisition.addPacket(data);
-                updateGraphics();
+                byte[] data = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
+                mAcquisition.addPacket(data);
 
+                // Plot and save the data if the buffer is full
+                if (mAcquisition.isReadyToPlot()){
+                    mAcquisition.updateReadyToPlot(false);
+                    mAcquisition.adaptSamples(mAcquisition.getData());
+                    updateGraphics();
+                    saveData();
+                }
             }
         }
     };
 
 
-    private final View.OnClickListener ImageClickListener =
-            new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int image = v.getId();
-                    int index = 0xFF  ;
-
-                }
-            };
-
-
-    private void updateGraphics(){
-        // Displays the mRMS value and updates the color of the graphics depending on the value
-
-        double mRMS = mUseCaseAcquisition.calculateRMS();
-
-        // Displays mRMS value in screen
-        String mRMS_display = "mRMS: " + mRMS;
-        rms_value_display = (TextView) findViewById(R.id.rms_value_display);
-        rms_value_display.setText(mRMS_display);
-
-        if (mRMS>2){
-            View btn = findViewById(R.id.button4);
-            btn.setVisibility(View.INVISIBLE);
-            rms_value_display.setTextColor(Color.RED);
+/*
+    private final View.OnClickListener ImageClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            int image = v.getId();
+            int index = 0xFF;
         }
-        else {
-            rms_value_display.setTextColor(Color.GREEN);
-        }
-
-        // ToDo: Update mlineChart with the data from mAquisition
-
-    }
+    };
+*/
 
 
     private static IntentFilter makeGattUpdateIntentFilter() {
@@ -513,4 +444,100 @@ public class ConnectedActivity extends AppCompatActivity {
         intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
         return intentFilter;
     }
-}
+
+
+    private void updateGraphics(){
+        // Displays the RMS value and plot the signal
+
+        double RMS = mAcquisition.calculateRMS(mAcquisition.getConvertedData());
+
+        // Adapt RMS to mV
+        double ADC_precision = 4.5013e-05;
+        double ADC_bottom_limit = 0.1;
+        double mRMS = (RMS * ADC_precision + ADC_bottom_limit) * 1000;
+
+        // Displays mRMS value in screen
+        String mRMS_display = "RMS: " + mRMS + " mV";
+        rms_value_display = findViewById(R.id.rms_value_display);
+        rms_value_display.setText(mRMS_display);
+
+        if (mRMS>2){
+            rms_value_display.setTextColor(Color.RED);
+        }
+        else {
+            rms_value_display.setTextColor(Color.GREEN);
+        }
+
+        // Update mlineChart with the data from mAcquisition
+        renderData();
+    }
+
+
+    public void renderData(){
+        // Configures the axis for the LineChart before plotting and then calls the function to plot
+
+        // Horizontal axis configuration
+        XAxis xAxis = mLineChart.getXAxis();
+        xAxis.enableGridDashedLine(10f, 10f, 0f);
+        xAxis.setAxisMaximum(10f); // Represent 10 seconds of the signal
+        xAxis.setAxisMinimum(0f);
+
+        // Vertical axis configuration
+        YAxis leftAxis = mLineChart.getAxisLeft();
+        leftAxis.removeAllLimitLines();
+        leftAxis.setDrawZeroLine(false);
+        leftAxis.setAxisMinimum(0f);
+
+        mLineChart.getAxisRight().setEnabled(false);
+        setData();
+    }
+
+
+    private void setData() {
+        // Plot the received 2 bytes data
+
+        short[] short_data = mAcquisition.getConvertedData();
+        int data_array_length = short_data.length;
+
+        // Conversion: Byte[] -> int[]
+        int[] int_data = new int[data_array_length];
+        for (int i = 0; i < data_array_length; i++){
+            int_data[i] = short_data[i] & 0xFFFF;
+        }
+
+        // Conversion: int[] -> float[]
+        float[] float_data = new float[data_array_length];
+        for (int i = 0; i < data_array_length; i++){
+            float_data[i] = (float) int_data[i];
+        }
+
+        // Conversion from samples to milivolts
+        double ADC_precision = 4.5013e-05;
+        float ADC_bottom_limit = (float) 0.1;
+        float[] mV_data = new float[data_array_length];
+        for (int i = 0; i < data_array_length; i++){
+            mV_data[i] = (float) (float_data[i] * ADC_precision + 0.1) * 1000;
+        }
+
+        // Add values to entry list
+        ArrayList<Entry> data_points = new ArrayList<>();
+        //float f;
+        float j = 0;
+        for (int i = 0; i < data_array_length; i++){
+            //f = mV_data[i];
+            j += 0.001;
+            data_points.add(new Entry(j, mV_data[i]));
+        }
+
+        LineDataSet plot1;
+        plot1 = new LineDataSet(data_points, "ECG");
+        LineData data = new LineData(plot1);
+        plot1.setDrawCircles(false);
+        plot1.setLineWidth(0f);
+        plot1.setColor(Color.argb(255,25,190,190));
+
+        mLineChart.setData(data);
+    }
+
+
+} //End class

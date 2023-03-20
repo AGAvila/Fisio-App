@@ -208,7 +208,7 @@ public class ScanActivity extends AppCompatActivity {
 
         }
         else {
-            scanLeDevice(true);
+            scanLeDevice(true); // ToDo si el Bluetooth no estaba activado al entrar a la actividad, el programa crashea
         }
 
     }

@@ -62,15 +62,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void configuracion(View view){
-  //      Intent intent = new Intent(this, ConfigurationActivity.class);
-  //      startActivity(intent);
+        // ToDo: Añadir menú con opciones de configuración
+
+    // Intent intent = new Intent(this, ConfigurationActivity.class);
+    // startActivity(intent);
     }
 
+    // ToDo: Mirar si habría que quitar este método por redundante
     public void data(View view){
+
     // Access to the data display activity after clicking the "measures" button
 
-        Intent measures_intent = new Intent(getApplicationContext(), ConnectedActivity.class);
-        startActivity(measures_intent);
+        Intent intent = new Intent(getApplicationContext(), ConnectedActivity.class);
+        startActivity(intent);
     }
 
 } // End main activity

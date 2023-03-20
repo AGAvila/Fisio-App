@@ -10,7 +10,7 @@
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="config">Configuration</string>
     <string name="connect">Connect</string>
-    <string name="button_salir">Exit</string>
+    <string name="button_exit">Exit</string>
     <string name="ble_not_supported">BLE no soportado en este dispositivo</string>
     <string name="button_connect">Conectar</string>
     <string name="button_cofig">Configuración</string>
@@ -35,4 +35,7 @@
     <string name="bien">Bien</string>
     <string name="reconnect">Reconnect</string>
     <string name="extract_measures">Measures</string>
+    <string name="acquiring_message">Acquiring…</string>
+    <string name="xaxis_label">Seconds</string>
+    <string name="yaxis_label">mV</string>
 </resources>
