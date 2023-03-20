@@ -100,7 +100,7 @@ public class Acquisition {
 
     }
 
-    // ToDo - Hacer que get data le entre como parámetro de entrada en vez de cogerlo él directamente
+    
     public double calculateRMS(short[] data){
         // Calculate the RMS from a data array
 
