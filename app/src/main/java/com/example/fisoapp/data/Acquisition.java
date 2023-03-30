@@ -14,7 +14,7 @@ public class Acquisition {
     private short[] convertedData;
     private int lastIndex;
     private boolean ready_to_plot;
-    private final int length_mData = 120000;
+    private final int length_mData = 120000; // Length of the 1 byte buffer send from BLE
 
     public Acquisition(){
         mData = new byte[length_mData];             // Data buffer 1 byte
@@ -97,7 +97,6 @@ public class Acquisition {
         // Save data
         writer.writeNext(data_string);
         writer.close();
-
     }
 
     
@@ -111,7 +110,6 @@ public class Acquisition {
         }
         rms = Math.sqrt(rms / data.length);
         return rms;
-
     }
 
 

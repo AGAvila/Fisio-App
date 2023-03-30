@@ -69,7 +69,8 @@ public class ConnectedActivity extends AppCompatActivity {
     private SharedPreferences mPreferences;
 
     private final static ArrayList<String> prefs =
-            new ArrayList<>(Arrays.asList("front","back","coolant","oil","brakeL","brakeP","wasser"));
+            new ArrayList<>(Arrays.asList("front","back","coolant","oil","brakeL","brakeP",
+                    "wasser"));
 
     private Acquisition mAcquisition;
 
@@ -193,6 +194,7 @@ public class ConnectedActivity extends AppCompatActivity {
 
                     // Acquiring message to user
                     rms_value_display = findViewById(R.id.rms_value_display);
+                    rms_value_display.setTextColor(Color.BLACK);
                     rms_value_display.setText(R.string.acquiring_message);
                 }
             }
@@ -523,7 +525,7 @@ public class ConnectedActivity extends AppCompatActivity {
         ArrayList<Entry> data_points = new ArrayList<>();
         //float f;
         float j = 0;
-        for (int i = 0; i < data_array_length; i++){
+        for (int i = 0; i < data_array_length; i++){ // Todo habría que hacer i = 1 para evitar el error de la primera muestra al representar
             //f = mV_data[i];
             j += 0.001;
             data_points.add(new Entry(j, mV_data[i]));
