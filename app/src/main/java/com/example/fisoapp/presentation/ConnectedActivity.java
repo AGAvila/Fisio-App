@@ -213,7 +213,7 @@ public class ConnectedActivity extends AppCompatActivity {
 
 
     private void saveData() {
-        // Save the plotted data in a csv file
+        // Save the plotted data in a CSV file
 
         short[] short_data = mAcquisition.getConvertedData();
         String file_name = "DataPointsStorage";
@@ -449,14 +449,17 @@ public class ConnectedActivity extends AppCompatActivity {
 
 
     private void updateGraphics(){
-        // Displays the RMS value and plot the signal
+        // Displays the RMS value in mV and plot the signal
 
         double RMS = mAcquisition.calculateRMS(mAcquisition.getConvertedData());
 
         // Adapt RMS to mV
-        double ADC_precision = 4.5013e-05;
-        double ADC_bottom_limit = 0.1;
-        double mRMS = (RMS * ADC_precision + ADC_bottom_limit) * 1000;
+        double ADC_resolution = 16;     // ADC resolution bits
+        double ADC_top_limit = 3.3;     // Max ADC voltage level
+        double ADC_bottom_limit = 0;    // Minimum ADC voltage level
+
+        double mRMS = (((RMS * ADC_top_limit) / (Math.pow(2, ADC_resolution) - 1) +
+                ADC_bottom_limit) * 1000);
 
         // Displays mRMS value in screen
         String mRMS_display = "RMS: " + mRMS + " mV";
@@ -481,7 +484,7 @@ public class ConnectedActivity extends AppCompatActivity {
         // Horizontal axis configuration
         XAxis xAxis = mLineChart.getXAxis();
         xAxis.enableGridDashedLine(10f, 10f, 0f);
-        xAxis.setAxisMaximum(10f); // Represent 10 seconds of the signal
+        xAxis.setAxisMaximum(60f); // Represent 60 seconds of the signal
         xAxis.setAxisMinimum(0f);
 
         // Vertical axis configuration
@@ -514,20 +517,21 @@ public class ConnectedActivity extends AppCompatActivity {
         }
 
         // Conversion from samples to milivolts
-        double ADC_precision = 4.5013e-05;
-        float ADC_bottom_limit = (float) 0.1;
+        double ADC_resolution = 16;     // ADC resolution bits
+        double ADC_top_limit = 3.3;     // Max ADC voltage level
+        double ADC_bottom_limit = 0;    // Minimum ADC voltage level
+
         float[] mV_data = new float[data_array_length];
         for (int i = 0; i < data_array_length; i++){
-            mV_data[i] = (float) (float_data[i] * ADC_precision + 0.1) * 1000;
+            mV_data[i] = (float) (((float_data[i] * ADC_top_limit) /
+                    (Math.pow(2, ADC_resolution) - 1) + ADC_bottom_limit) * 1000);
         }
 
         // Add values to entry list
         ArrayList<Entry> data_points = new ArrayList<>();
-        //float f;
         float j = 0;
-        for (int i = 0; i < data_array_length; i++){ // Todo habría que hacer i = 1 para evitar el error de la primera muestra al representar
-            //f = mV_data[i];
-            j += 0.001;
+        for (int i = 0; i < data_array_length; i++){
+            j += 0.001;  // Seconds per sample
             data_points.add(new Entry(j, mV_data[i]));
         }
 
