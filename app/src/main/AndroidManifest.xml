@@ -33,7 +33,6 @@
         <activity
             android:name=".presentation.ConnectedActivity"
             android:label="EMG Scan"/>
-
         <activity
             android:name=".presentation.MainActivity"
             android:exported="true"

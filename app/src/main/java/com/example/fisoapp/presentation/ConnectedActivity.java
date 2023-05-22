@@ -457,9 +457,10 @@ public class ConnectedActivity extends AppCompatActivity {
         double ADC_resolution = 16;     // ADC resolution bits
         double ADC_top_limit = 3.3;     // Max ADC voltage level
         double ADC_bottom_limit = 0;    // Minimum ADC voltage level
+        double Amp = 51;                // Amplification after the ADC
 
         double mRMS = (((RMS * ADC_top_limit) / (Math.pow(2, ADC_resolution) - 1) +
-                ADC_bottom_limit) * 1000);
+                ADC_bottom_limit) * 1000 / Amp);
 
         // Displays mRMS value in screen
         String mRMS_display = "RMS: " + mRMS + " mV";
@@ -520,11 +521,12 @@ public class ConnectedActivity extends AppCompatActivity {
         double ADC_resolution = 16;     // ADC resolution bits
         double ADC_top_limit = 3.3;     // Max ADC voltage level
         double ADC_bottom_limit = 0;    // Minimum ADC voltage level
+        double Amp = 51;                // Amplification after the ADC
 
         float[] mV_data = new float[data_array_length];
         for (int i = 0; i < data_array_length; i++){
             mV_data[i] = (float) (((float_data[i] * ADC_top_limit) /
-                    (Math.pow(2, ADC_resolution) - 1) + ADC_bottom_limit) * 1000);
+                    (Math.pow(2, ADC_resolution) - 1) + ADC_bottom_limit) * 1000 / Amp);
         }
 
         // Add values to entry list

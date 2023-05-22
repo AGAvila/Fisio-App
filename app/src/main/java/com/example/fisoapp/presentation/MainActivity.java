@@ -55,20 +55,22 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+
     public void salir(View view){
         // Closes the app
 
         finish();
     }
 
+
     public void configuracion(View view){
-        // ToDo: Añadir menú con opciones de configuración
+    // ToDo: Añadir menú con opciones de configuración
 
     // Intent intent = new Intent(this, ConfigurationActivity.class);
     // startActivity(intent);
     }
 
-    // ToDo: Mirar si habría que quitar este método por redundante
+
     public void data(View view){
 
     // Access to the data display activity after clicking the "measures" button

@@ -17,6 +17,8 @@ public class Acquisition {
     private final int length_mData = 120000; // Length of the 1 byte buffer send from BLE
 
     public Acquisition(){
+        // Initial conditions
+
         mData = new byte[length_mData];             // Data buffer 1 byte
         convertedData = new short[mData.length/2];  // Data buffer reconverted to 2 bytes
         lastIndex = 0;
